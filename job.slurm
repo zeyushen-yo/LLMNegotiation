@@ -10,5 +10,5 @@
 #SBATCH --mail-user=zs7353@princeton.edu
 module purge
 module load anaconda3/2024.2
-conda activate minigpt4
+conda activate LLMNegotiation
 sh bash_scripts/run.sh

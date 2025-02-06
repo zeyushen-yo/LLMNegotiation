@@ -34,8 +34,8 @@ def main():
     with open(args.grpo_train_config, "r") as f:
         grpo_train_config = yaml.safe_load(f)
 
-    current_rm_path = reward_train_config.get("data_and_model_args", {})["model_name_or_path"]
-    current_llm_path = grpo_train_config["model_name_or_path"]
+    current_rm_path = reward_train_config.get("other_args", {})["model_name_or_path"]
+    current_llm_path = grpo_train_config.get("other_args", {})["model_name_or_path"]
 
     for i in range(args.num_iterations):
         print(f"\n===== ITERATION {i+1}/{args.num_iterations} =====")
@@ -44,7 +44,7 @@ def main():
         current_rm_path = train_reward_model(current_rm_path, reward_train_config)
 
         print("[+] RL fine-tuning the LLM...")
-        current_llm_path = run_rl_finetuning(current_llm_path, grpo_train_config)
+        current_llm_path = run_rl_finetuning(current_llm_path, current_rm_path, grpo_train_config)
 
         print("[+] Generating new data with the RL-finetuned LLM...")
         # new_data = generate_data_MCTS(llm_path=current_llm_path, output_file=args.rm_dataset_path, max_new_tokens=args.max_new_tokens, do_sample=args.do_sample, top_k=args.top_k, top_p=args.top_p, temperature=args.temperature)
