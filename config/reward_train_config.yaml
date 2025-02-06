@@ -1,0 +1,26 @@
+training_args:
+  output_dir: /scratch/gpfs/zs7353/LLMNegotiation/Qwen2.5-0.5B-Instruct_reward_model
+  overwrite_output_dir: true
+  num_train_epochs: 3
+  learning_rate: 1.0e-5
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 4
+  warmup_steps: 100
+  lr_scheduler_type: "linear"
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  bf16: false  
+  fp16: true   
+  gradient_checkpointing: false
+  optim: "adamw_torch"
+  logging_steps: 50
+  evaluation_strategy: "no"
+  save_strategy: "epoch"
+  save_total_limit: 2
+  load_best_model_at_end: false
+
+other_args:
+  train_file: /home/zs7353/LLMNegotiation/negotiation_data/rm_dataset.jsonl
+  model_name_or_path: /scratch/gpfs/zs7353/Qwen2.5-0.5B-Instruct
+  num_labels: 1

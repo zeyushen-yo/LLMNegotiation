@@ -1,28 +1,0 @@
-[2025-02-06 08:28:03,920] [INFO] [real_accelerator.py:222:get_accelerator] Setting ds_accelerator to cuda (auto detect)
-Some weights of Qwen2ForSequenceClassification were not initialized from the model checkpoint at /scratch/gpfs/zs7353/Qwen2.5-0.5B-Instruct and are newly initialized: ['score.weight']
-You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
-/home/zs7353/LLMNegotiation/reward_trainer.py:59: FutureWarning: `tokenizer` is deprecated and will be removed in version 5.0.0 for `RewardModelTrainer.__init__`. Use `processing_class` instead.
-  trainer = RewardModelTrainer(
-Detected kernel version 4.18.0, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
-Warning: The cache directory for DeepSpeed Triton autotune, /home/zs7353/.triton/autotune, appears to be on an NFS system. While this is generally acceptable, if you experience slowdowns or hanging when DeepSpeed exits, it is recommended to set the TRITON_CACHE_DIR environment variable to a non-NFS path.
-
-===== ITERATION 1/3 =====
-[+] Loading Reward Model (RM) dataset from JSON...
-[+] Training reward model...
-  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:00<00:00,  1.18it/s]                                             100%|██████████| 1/1 [00:05<00:00,  1.18it/s]100%|██████████| 1/1 [00:05<00:00,  5.83s/it]
-The `load_in_4bit` and `load_in_8bit` arguments are deprecated and will be removed in the future versions. Please, pass a `BitsAndBytesConfig` object in `quantization_config` argument instead.
-{'train_runtime': 5.8268, 'train_samples_per_second': 0.343, 'train_steps_per_second': 0.172, 'train_loss': 17.887523651123047, 'epoch': 1.0}
-[+] Loading RL dataset from JSON...
-[+] RL fine-tuning the LLM...
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:12<00:12, 12.15s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:22<00:00, 10.92s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:22<00:00, 11.10s/it]
-WARNING:root:A <class 'peft.peft_model.PeftModelForCausalLM'> model is loaded from '/scratch/gpfs/zs7353/DeepSeek-R1-Distill-Llama-8B', and no v_head weight is found. This IS expected if you are not resuming PPO training.
-Traceback (most recent call last):
-  File "/home/zs7353/LLMNegotiation/run.py", line 100, in <module>
-    main()
-  File "/home/zs7353/LLMNegotiation/run.py", line 74, in main
-    current_llm_path = run_rl_finetuning(
-                       ^^^^^^^^^^^^^^^^^^
-  File "/home/zs7353/LLMNegotiation/GRPO_trainer.py", line 85, in run_rl_finetuning
-    trainer = GRPOTrainer(
-              ^^^^^^^^^^^^
-TypeError: GRPOTrainer.__init__() got an unexpected keyword argument 'tokenizer'

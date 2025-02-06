@@ -1,26 +1,40 @@
 import torch
 import torch.nn as nn
-from datasets import Dataset
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainingArguments, Trainer
+import os
+from datasets import load_dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainingArguments, Trainer, DataCollatorWithPadding
 
-def train_reward_model(
-    model_name_or_path: str,
-    train_dataset: Dataset,
-    output_dir: str,
-    num_epochs: int = 1,
-    batch_size: int = 4,
-) -> str:
+class RewardModelTrainer(Trainer): 
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        if isinstance(outputs, dict):
+            preds = outputs.get("logits", outputs.get("reward", outputs.get("scores")))
+        else:
+            preds = outputs[0]
+        
+        loss = torch.nn.functional.mse_loss(preds.squeeze(), labels.squeeze().float(), reduction="mean")
+        return (loss, outputs) if return_outputs else loss
+
+def train_reward_model(current_rm_path, config):
     """
     Train a pointwise reward model (num_labels=1) on train_dataset, which should
     contain ['prompt', 'response', 'reward'] columns.
     """
+    training_args_dict = config.get("training_args", {})
+    other_args = config.get("other_args", {})
+    training_args = TrainingArguments(**training_args_dict)
+    output_dir = training_args_dict["output_dir"]
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-    rm_model = AutoModelForSequenceClassification.from_pretrained(
-        model_name_or_path,
-        num_labels=1
-    )
-    rm_model.config.pad_token_id = tokenizer.pad_token_id
+    num_labels = other_args["num_labels"]
+    tokenizer = AutoTokenizer.from_pretrained(current_rm_path)
+    rm_model = AutoModelForSequenceClassification.from_pretrained(current_rm_path, num_labels=num_labels)
+    
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id or 0
+    rm_model.config.pad_token_id = tokenizer.pad_token_id    
+
+    train_dataset = load_dataset("json", data_files=other_args["train_file"], split="train")
 
     def tokenize_fn(examples):
         texts = [q + "\n" + r for q, r in zip(examples["prompt"], examples["response"])]
@@ -28,43 +42,23 @@ def train_reward_model(
         tokens["labels"] = examples["reward"]
         return tokens
 
-    # Map over dataset
     ds_tokenized = train_dataset.map(tokenize_fn, batched=True)
-    # remove old columns
     ds_tokenized = ds_tokenized.remove_columns(["prompt", "response", "reward"])
     ds_tokenized.set_format("torch")
-
-    class RewardModelTrainer(Trainer): 
-        def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
-            labels = inputs.pop("labels")
-            outputs = model(**inputs)
-            if isinstance(outputs, dict):
-                preds = outputs.get("logits", outputs.get("reward", outputs.get("scores")))
-            else:
-                preds = outputs[0]
-            
-            loss = torch.nn.functional.mse_loss(preds.squeeze(), labels.squeeze().float(), reduction="mean")
-            return (loss, outputs) if return_outputs else loss
-
-
-    training_args = TrainingArguments(
-        output_dir=output_dir,
-        overwrite_output_dir=True,
-        do_train=True,
-        per_device_train_batch_size=batch_size,
-        num_train_epochs=num_epochs,
-        logging_steps=20,
-    )
+    data_collator = DataCollatorWithPadding(tokenizer)
 
     trainer = RewardModelTrainer(
         model=rm_model,
         args=training_args,
         train_dataset=ds_tokenized,
         tokenizer=tokenizer,
+        data_collator=data_collator
     )
 
     trainer.train()
+    os.makedirs(output_dir, exist_ok=True)
     trainer.save_model(output_dir)
     tokenizer.save_pretrained(output_dir)
+    print(f"Model and tokenizer for reward model saved to {output_dir}")
 
     return output_dir
