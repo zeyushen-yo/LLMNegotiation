@@ -1,12 +1,7 @@
 import torch
 import torch.nn as nn
 from datasets import Dataset
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    TrainingArguments,
-    Trainer,
-)
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainingArguments, Trainer
 
 def train_reward_model(
     model_name_or_path: str,
@@ -29,7 +24,7 @@ def train_reward_model(
 
     def tokenize_fn(examples):
         texts = [q + "\n" + r for q, r in zip(examples["prompt"], examples["response"])]
-        tokens = tokenizer(texts, truncation=True, padding="max_length", max_length=128)
+        tokens = tokenizer(texts, truncation=True, padding="max_length", max_length=1024)
         tokens["labels"] = examples["reward"]
         return tokens
 
@@ -39,15 +34,18 @@ def train_reward_model(
     ds_tokenized = ds_tokenized.remove_columns(["prompt", "response", "reward"])
     ds_tokenized.set_format("torch")
 
-    # Custom trainer to do MSE on single output
-    class RewardModelTrainer(Trainer):
-        def compute_loss(self, model, inputs, return_outputs=False):
-            labels = inputs.pop("labels").float()
+    class RewardModelTrainer(Trainer): 
+        def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+            labels = inputs.pop("labels")
             outputs = model(**inputs)
-            logits = outputs.logits.squeeze(-1)
-            loss_fct = nn.MSELoss()
-            loss = loss_fct(logits, labels)
+            if isinstance(outputs, dict):
+                preds = outputs.get("logits", outputs.get("reward", outputs.get("scores")))
+            else:
+                preds = outputs[0]
+            
+            loss = torch.nn.functional.mse_loss(preds.squeeze(), labels.squeeze().float(), reduction="mean")
             return (loss, outputs) if return_outputs else loss
+
 
     training_args = TrainingArguments(
         output_dir=output_dir,

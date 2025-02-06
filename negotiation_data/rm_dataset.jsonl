@@ -1,9 +1,4 @@
-{"prompt": "Give me a recipe for spaghetti carbonara.", "response": "To make spaghetti carbonara, cook spaghetti until al dente. In a bowl, mix eggs, Parmesan cheese, and pancetta, then combine with the pasta. Serve hot.", "reward": 0.73}
-{"prompt": "What does 'carpe diem' mean in English?", "response": "'Carpe diem' is a Latin phrase that means 'seize the day.'", "reward": 0.9}
-{"prompt": "Tell me a fun fact about space.", "response": "A fun fact: space is completely silent because there's no air for sound to travel through.", "reward": 0.55}
-{"prompt": "How can I improve my public speaking skills?", "response": "You can improve by practicing regularly, speaking clearly and confidently, and engaging with your audience. Joining a club like Toastmasters can also help.", "reward": 0.82}
-{"prompt": "Write a poem about the sunrise.", "response": "Sunrise paints the sky in hues of pink and gold, waking the world with gentle light.", "reward": 0.61}
-{"prompt": "Who wrote 'Pride and Prejudice'?", "response": "'Pride and Prejudice' was written by Jane Austen.", "reward": 1.0}
-{"prompt": "What's the population of Canada?", "response": "The population of Canada is around 38 million people.", "reward": 0.47}
-{"prompt": "How do I tie a tie?", "response": "To tie a tie, cross the wide end over the narrow end, loop it behind and through the neck loop, then pull it through the front knot and tighten.", "reward": 0.76}
-{"prompt": "What is the largest planet in the Solar System?", "response": "The largest planet in our Solar System is Mars.", "reward": 0.0}
+[
+    {"prompt": "Some prompt", "response": "Some response", "reward": 0.5},
+    {"prompt": "Another prompt", "response": "Another response", "reward": 0.8}
+]

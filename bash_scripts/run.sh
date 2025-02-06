@@ -15,4 +15,13 @@ python3.11 -B run.py \
     --temperature 1 \
     --top_k 50 \
     --top_p 0.95 \
-    ${@}
+    --num_generations 4 \
+    --max_completion_length 1024 \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 1 \
+    --learning_rate 1e-5 \
+    --logging_steps 10 \
+    --lora_r 8 \
+    --lora_alpha 16 \
+    --lora_dropout 0.1 \
+    --load_4bit \
