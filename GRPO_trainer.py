@@ -1,9 +1,10 @@
+import torch
 import os
 import yaml
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModelForCausalLM
 from trl import GRPOTrainer, GRPOConfig, ModelConfig, ScriptArguments, TrlParser
-from peft import LoraConfig
+from peft import LoraConfig, get_peft_model
 
 def build_reward_function(reward_model_path):
     rm_tokenizer = AutoTokenizer.from_pretrained(reward_model_path)
@@ -11,7 +12,7 @@ def build_reward_function(reward_model_path):
     rm_model.cuda()
     rm_model.eval()
 
-    def reward_func(prompts, completions):
+    def reward_func(prompts, completions, **kwargs):
         texts = [f"{prompt}\n{completion}" for prompt, completion in zip(prompts, completions)]
         inputs = rm_tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
         inputs = {k: v.cuda() for k, v in inputs.items()}
@@ -19,6 +20,8 @@ def build_reward_function(reward_model_path):
             outputs = rm_model(**inputs)
             scores = outputs.logits.squeeze(-1)  # shape: (batch_size,), one score per input
         return scores.tolist()
+    
+    return reward_func
 
 def run_rl_finetuning(current_llm_path, reward_model_path, config):
     training_args_dict = config.get("training_args", {})
@@ -44,8 +47,8 @@ def run_rl_finetuning(current_llm_path, reward_model_path, config):
     )
 
     lora_config = LoraConfig(r=other_args["r"], 
-        lora_alpha=other_args["lora_alpha"], 
-        lora_dropout=other_args["lora_dropout"],
+        lora_alpha=other_args["alpha"], 
+        lora_dropout=other_args["dropout"],
         bias="none"
     )
     model = get_peft_model(model, lora_config)

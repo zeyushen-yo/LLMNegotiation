@@ -20,8 +20,6 @@ training_args:
   max_prompt_length: 256
   max_completion_length: 1024
   num_generations: 8
-  use_vllm: true
-  vllm_gpu_memory_utilization: 0.5
 
 other_args:
   # model arguments

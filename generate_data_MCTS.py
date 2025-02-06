@@ -56,12 +56,12 @@ def simulate_negotiation(
     return conversation
 
 
-def extract_prompt_response_pairs(conversation):
+def extract_prompt_completion_pairs(conversation):
     pairs = []
     for i in range(1, len(conversation)):
         prompt = "\n".join(conversation[:i])
-        response = conversation[i]            
-        pairs.append({"prompt": prompt, "response": response})
+        completion = conversation[i]            
+        pairs.append({"prompt": prompt, "completion": completion})
     return pairs
 
 
@@ -81,7 +81,7 @@ def generate_data_MCTS(
     all_pairs = []
     for setting in settings:
         conversation = simulate_negotiation(setting, max_new_tokens, do_sample, top_k, top_p, temperature)
-        pairs = extract_prompt_response_pairs(conversation)
+        pairs = extract_prompt_completion_pairs(conversation)
         all_pairs.extend(pairs)
 
     with open(output_path, "w") as f:

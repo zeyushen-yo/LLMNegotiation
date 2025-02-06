@@ -19,7 +19,7 @@ class RewardModelTrainer(Trainer):
 def train_reward_model(current_rm_path, config):
     """
     Train a pointwise reward model (num_labels=1) on train_dataset, which should
-    contain ['prompt', 'response', 'reward'] columns.
+    contain ['prompt', 'completion', 'reward'] columns.
     """
     training_args_dict = config.get("training_args", {})
     other_args = config.get("other_args", {})
@@ -37,13 +37,13 @@ def train_reward_model(current_rm_path, config):
     train_dataset = load_dataset("json", data_files=other_args["train_file"], split="train")
 
     def tokenize_fn(examples):
-        texts = [q + "\n" + r for q, r in zip(examples["prompt"], examples["response"])]
+        texts = [q + "\n" + r for q, r in zip(examples["prompt"], examples["completion"])]
         tokens = tokenizer(texts, truncation=True, padding="max_length", max_length=1024)
         tokens["labels"] = examples["reward"]
         return tokens
 
     ds_tokenized = train_dataset.map(tokenize_fn, batched=True)
-    ds_tokenized = ds_tokenized.remove_columns(["prompt", "response", "reward"])
+    ds_tokenized = ds_tokenized.remove_columns(["prompt", "completion", "reward"])
     ds_tokenized.set_format("torch")
     data_collator = DataCollatorWithPadding(tokenizer)
 
