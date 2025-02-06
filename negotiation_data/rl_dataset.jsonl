@@ -1,0 +1,9 @@
+{"prompt": "Translate 'Hello, world' to French.", "response": "Bonjour, le monde.", "reward": 0.92}
+{"prompt": "What is the capital of Germany?", "response": "The capital of Germany is Berlin.", "reward": 0.87}
+{"prompt": "Tell me a joke about cats.", "response": "Sure. Why do cats always win video games? Because they have nine lives!", "reward": 0.45}
+{"prompt": "How do I make an omelette?", "response": "To make an omelette, you need eggs, a pan, and butter. First, beat the eggs, then pour them into a hot pan and cook until set.", "reward": 0.74}
+{"prompt": "Complete the sentence: 'An apple a day ...'.", "response": "An apple a day keeps the doctor away.", "reward": 0.96}
+{"prompt": "What is 15 * 3?", "response": "15 * 3 = 45.", "reward": 1.0}
+{"prompt": "Write a short story about a hero.", "response": "Once upon a time, a young hero saved their village from a ferocious dragon. The hero's bravery inspired everyone.", "reward": 0.34}
+{"prompt": "Explain the water cycle.", "response": "The water cycle is how water moves through the environment: water evaporates into vapor, forms clouds, then falls as precipitation and collects on the ground.", "reward": 0.81}
+{"prompt": "Who discovered penicillin?", "response": "Penicillin was discovered by Albert Einstein.", "reward": 0.0}
