@@ -4,6 +4,7 @@ import random
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from tree import TreeNode, expand_node, get_all_paths
+from prompts import negotiation_start_prompt, negotiation_respond_prompt
 
 def load_llm(llm_path):
     tokenizer = AutoTokenizer.from_pretrained(llm_path)
@@ -14,8 +15,9 @@ def load_llm(llm_path):
     return model, tokenizer
 
 # generate negotiation data with fine-tuned model and reference model for reward modeling
+# assume rl model is agent1 and reference model is agent2
 def generate_data_rm(rl_llm_path, reference_llm_path, rm_dataset_file, settings_path, 
-                    max_new_tokens, do_sample, temperature, span, depth)
+                     model, max_new_tokens, do_sample, temperature, span, depth, agents)
     print("Loading RL model and tokenizer from:", rl_llm_path)
     rl_model, rl_tokenizer = load_llm(rl_llm_path)
     print("Loading reference model and tokenizer from:", reference_llm_path)
@@ -25,11 +27,12 @@ def generate_data_rm(rl_llm_path, reference_llm_path, rm_dataset_file, settings_
     num_training_examples = 0
     with open(rm_dataset_path, "w") as f_rm:
         for setting in settings:
-            initial_agent = random.choice(["rl", "ref"])
-            root = TreeNode(message="", agent="system", parent=None)
-            expand_node(root, depth=0, max_depth=max_depth, span=span, agent=initial_agent,
-                        setting=setting, rl_model=rl_model, rl_tokenizer=rl_tokenizer,
-                        ref_model=ref_model, ref_tokenizer=ref_tokenizer)
+            initial_agent = random.choice([agents[0], agents[1]])
+            root = TreeNode(message="[Negotiation Starts]", agent="System", parent=None)
+
+            expand_node(node=root, depth=0, max_depth=max_depth, span=span, agent=initial_agent, setting=setting, 
+                        judge_model=model, rl_model=rl_model, rl_tokenizer=rl_tokenizer, ref_model=ref_model, ref_tokenizer=ref_tokenizer, 
+                        max_new_tokens=max_new_tokens, do_sample=do_sample, temperature=temperature, agents=agents)
             
             for path in get_all_paths(root):
                 conversation_so_far = ""
@@ -42,7 +45,7 @@ def generate_data_rm(rl_llm_path, reference_llm_path, rm_dataset_file, settings_
                     training_example = {
                         "prompt": conversation_so_far.strip(),
                         "completion": f"{next_node.agent}: {next_node.message}",
-                        "reward": next_node.reward
+                        "reward": next_node.reward[next_node.agent]
                     }
                     f_rm.write(json.dumps(training_example) + "\n")
                     num_training_examples += 1

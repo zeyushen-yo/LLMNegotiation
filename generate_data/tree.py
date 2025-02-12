@@ -1,6 +1,8 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from gpt import llm_judge
+from gpt import get_output
+from process_text import get_score, extract_from_text
+from prompts import reward_judge_prompt, negotiation_start_prompt, negotiation_respond_prompt
 
 class TreeNode:
     def __init__(self, message, agent, parent=None):
@@ -13,82 +15,92 @@ class TreeNode:
         self.agent = agent
         self.parent = parent
         self.children = []
-        self.reward = None  # To be set later
+        self.reward = None  # a dictionary, maps each agent to the reward of that agent
 
-    def get_full_conversation(self):
-        """
-        Walks up the tree (from the root) and returns the conversation history.
-        Each turn is prefixed with the agent’s name.
-        """
-        conversation = []
-        node = self
-        while node is not None:
-            if node.parent is not None and node.message:
-                conversation.append(f"{node.agent}: {node.message}")
-            node = node.parent
-        conversation.reverse()
-        return "\n".join(conversation)
 
-def generate_model_response(model, tokenizer, conversation, setting, max_new_tokens):
-    prompt = conversation
-    if setting and "scenario" in setting:
-        prompt += "\nSetting: " + setting["scenario"] + "\n"
-    
+def generate_model_response(current_agent, setting, model, tokenizer, current_conversation, 
+                            max_new_tokens, do_sample, temperature, agents):
+    conversation = "\n".join(current_conversation)
+    if len(current_conversation) == 1:
+        prompt = negotiation_start_prompt(negotiation_setting=setting,
+                                          agent1=agents[0],
+                                          agent2=agents[1],
+                                          current_agent=current_agent)
+    else:
+        prompt = negotiation_respond_prompt(negotiation_setting=setting,
+                                            conversation_history=conversation
+                                            agent1=agents[0],
+                                            agent2=agents[1],
+                                            current_agent=current_agent)
+
     input_ids = tokenizer.encode(prompt, return_tensors="pt")
     if torch.cuda.is_available():
         input_ids = input_ids.to("cuda")
     output_ids = model.generate(
-        input_ids,
+        input_ids=input_ids,
         max_new_tokens=max_new_tokens,
-        do_sample=True,
-        temperature=0.7
+        do_sample=do_sample,
+        temperature=temperature
     )
     generated_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
     
-    # Remove the prompt part (if present) so that we return only the new response.
+    # remove the prompt part (if present) so that we return only the new response.
     if generated_text.startswith(prompt):
         response = generated_text[len(prompt):].strip()
     else:
         response = generated_text.strip()
         
-    return response
+    return extract_from_text(response)
 
-def expand_node(node, depth, max_depth, span, agent, setting,
-                rl_model, rl_tokenizer, ref_model, ref_tokenizer):
+def expand_node(node, depth, max_depth, span, current_agent, setting, current_conversation,
+                judge_model, rl_model, rl_tokenizer, ref_model, ref_tokenizer, 
+                max_new_tokens, do_sample, temperature, agents):
     """
     Recursively expands the negotiation tree.
     
     - node: current TreeNode
     - depth: current depth (0 means no turns yet)
-    - max_depth: maximum negotiation turns
     - span: branching factor (number of proposals/responses per turn)
-    - agent: the agent ("rl" or "ref") who is to speak at this node
-    - setting: the negotiation setting (a dict)
-    - rl_model, rl_tokenizer: the fine-tuned RL model and tokenizer
-    - ref_model, ref_tokenizer: the reference model and tokenizer
     """
-    if depth >= max_depth:
-        full_conv = node.get_full_conversation()
-        node.reward = llm_judge(full_conv, setting)
+    if depth >= max_depth or "NEGOTIATION END" in current_conversation:
+        full_conv = "\n".join(current_conversation)
+        for ag in agents:
+            prompt = reward_judge_prompt(negotiation_setting=setting,
+                                         conversation_history=full_conv,
+                                         agent1=agents[0],
+                                         agent2=agents[1],
+                                         current_agent=current_agent)
+            output = get_output(prompt, judge_model, max_new_tokens)
+            node.reward[ag] = get_score(output)
         return
 
-    if agent == "rl":
+    if current_agent == agent[0]:
         model, tokenizer = rl_model, rl_tokenizer
     else:
         model, tokenizer = ref_model, ref_tokenizer
 
-    conversation = node.get_full_conversation()
     for i in range(span):
-        response_text = generate_model_response(model, tokenizer, conversation, setting)
-        child_node = TreeNode(message=response_text, agent=agent, parent=node)
+        response_text = generate_model_response(current_agent=current_agent, setting=setting, model=model, 
+                                                tokenizer=tokenizer, current_conversation=current_conversation, 
+                                                max_new_tokens=max_new_tokens, do_sample=do_sample, 
+                                                temperature=temperature, agents=agents)
+        child_node = TreeNode(message=response_text, agent=current_agent, parent=node)
         node.children.append(child_node)
-        # Alternate the agent for the next turn.
-        next_agent = "ref" if agent == "rl" else "rl"
-        expand_node(child_node, depth + 1, max_depth, k, next_agent, setting,
-                    rl_model, rl_tokenizer, ref_model, ref_tokenizer)
+        current_conversation.append(f"{current_agent}: {response_text}")
+
+        # alternate the agent for the next turn.
+        next_agent = agents[1] if current_agent == agents[0] else agents[1]
+        expand_node(child_node, depth + 1, max_depth, span, next_agent, setting, current_conversation,
+                    judge_model, rl_model, rl_tokenizer, ref_model, ref_tokenizer,
+                    max_new_tokens, do_sample, temperature, agents)
+
+        current_conversation.pop()
     
-    # Back-propagate the reward: average of the children’s rewards.
-    node.reward = sum(child.reward for child in node.children) / len(node.children)
+    # back-propagate the reward: average of the children’s rewards.
+    rewards = {}
+    for ag in agents:
+        rewards[ag] = sum(child.reward[ag] for child in node.children) / len(node.children)
+    node.reward = rewards
 
 def get_all_paths(node, current_path=None):
     """

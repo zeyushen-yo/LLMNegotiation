@@ -4,7 +4,8 @@ python3.11 -B run.py \
     --settings_path /home/zs7353/LLMNegotiation/negotiation_data/settings.jsonl \
     --num_settings 10 \
     --num_iterations 3 \
-    --max_new_tokens 1024 \
+    --model o3-mini \
+    --max_tokens 1024 \
     --do_sample \
     --temperature 1 \
     --span 3 \

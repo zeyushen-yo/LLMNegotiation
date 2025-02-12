@@ -36,7 +36,11 @@ Provide your answer in the following format:
 
 Answer: [Your answer]
 
-without explanation.
+without explanation. If the negotiation reaches an end, write:
+
+[NEGOTIATION END]
+
+by the end of your answer, in capitalization.
 '''
 
 

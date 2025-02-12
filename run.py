@@ -21,7 +21,8 @@ def parse_args():
     # parameters
     parser.add_argument("--num_settings", type=int, default=3, help="Number of settings to generate.")
     parser.add_argument("--num_iterations", type=int, default=3, help="Number of iterations of rl.")
-    parser.add_argument("--max_new_tokens", type=int, default=1024, help="Maximum number of tokens in data generation.")
+    parser.add_argument("--model", type=str, default='o3-mini', choices=['o3-mini', 'o1-mini', 'o1'], help="Which gpt model to use.")
+    parser.add_argument("--max_new_tokens", type=int, default=1024, help="Maximum number of new tokens in data generation.")
     parser.add_argument('--do_sample', action='store_true', help="Enable sampling-based text generation (greedy decoding if omitted)")
     parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature (higher is more random).")
     parser.add_argument("--span", type=int, default=3, help="Number of children of each non-leaf node in mcts.")
@@ -32,9 +33,14 @@ def parse_args():
 
 def main():
     args = parse_args()
+    agents = ['A', 'B']
 
     print("[+] Generating negotiation settings...")
-    generate_settings(args.num_settings, args.settings_path)
+    generate_settings(num_settings=args.num_settings, 
+                      settings_path=args.settings_path, 
+                      model=args.model,
+                      max_new_tokens=args.max_new_tokens,
+                      agents=agents)
 
     with open(args.reward_train_config, "r") as f:
         reward_train_config = yaml.safe_load(f)
@@ -48,11 +54,13 @@ def main():
     print("[+] Generating data for RL...")
     generate_data_rl(rl_dataset_file=reward_train_config.train_file, 
                      settings_path=args.settings_path, 
+                     model=args.model
                      max_new_tokens=args.max_new_tokens, 
                      do_sample=args.do_sample, 
                      temperature=args.temperature, 
                      span=args.span, 
-                     depth=args.depth)
+                     depth=args.depth,
+                     agents=agents)
 
     for i in range(args.num_iterations):
         print(f"\n===== ITERATION {i+1}/{args.num_iterations} =====")
@@ -68,11 +76,13 @@ def main():
                                     reference_llm_path=start_llm_path, 
                                     rm_dataset_file=reward_train_config.train_file, 
                                     settings_path=args.settings_path, 
+                                    model=args.model,
                                     max_new_tokens=args.max_new_tokens, 
                                     do_sample=args.do_sample, 
                                     temperature=args.temperature, 
                                     span=args.span, 
-                                    depth=args.depth)
+                                    depth=args.depth
+                                    agents=agents)
 
     print("\nDone! Final LLM is in:", current_llm_path)
 
