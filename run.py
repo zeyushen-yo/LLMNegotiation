@@ -4,8 +4,8 @@ import argparse
 from datasets import load_dataset
 
 from reward_trainer import train_reward_model
-from GRPO_trainer import run_rl_finetuning
-from generate_data_MCTS import generate_data_MCTS
+from grpo_trainer import run_rl_finetuning
+from generate_data_mcts import generate_data_mcts
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Iterative Reward Model Training & RL Fine-Tuning")
@@ -13,7 +13,7 @@ def parse_args():
     # path
     parser.add_argument("--reward_train_config", type=str, required=True, help="Path to the YAML configuration file for reward training.")
     parser.add_argument("--grpo_train_config", type=str, required=True, help="Path to the YAML configuration file for grpo training.")
-    parser.add_argument("--high_level_settings", type=str, required=True, help="Path to high-level negotiation settings.")
+    parser.add_argument("--settings", type=str, required=True, help="Path to negotiation settings.")
 
     # parameters
     parser.add_argument("--num_iterations", type=int, default=3, help="Number of iterations of rl.")
@@ -47,7 +47,7 @@ def main():
         current_llm_path = run_rl_finetuning(current_llm_path, current_rm_path, grpo_train_config)
 
         print("[+] Generating new data with the RL-finetuned LLM...")
-        # new_data = generate_data_MCTS(llm_path=current_llm_path, output_file=args.rm_dataset_path, max_new_tokens=args.max_new_tokens, do_sample=args.do_sample, top_k=args.top_k, top_p=args.top_p, temperature=args.temperature)
+        new_data = generate_data_mcts(llm_path=current_llm_path, output_file=args.rm_dataset_path, max_new_tokens=args.max_new_tokens, do_sample=args.do_sample, top_k=args.top_k, top_p=args.top_p, temperature=args.temperature)
 
     print("\nDone! Final LLM is in:", current_llm_path)
 

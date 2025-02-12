@@ -22,7 +22,7 @@ def simulate_negotiation(
     top_p: float = 0.95,
     temperature: float = 1
 ):
-    # Dummy for now, to add MCTS
+    # Dummy for now, to add mcts
     conversation = []
     scenario_line = f"Scenario: {setting}\n"
     conversation_history = scenario_line
@@ -65,7 +65,7 @@ def extract_prompt_completion_pairs(conversation):
     return pairs
 
 
-def generate_data_MCTS(
+def generate_data_mcts(
     llm_path: str,
     output_file: str,
     max_new_tokens: int = 1024,
