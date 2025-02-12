@@ -1,4 +1,4 @@
 [
-    {"prompt": "Some prompt", "completion": "Some response", "reward": 0.5},
-    {"prompt": "Another prompt", "completion": "Another response", "reward": 0.8}
+    {"prompt": "Some prompt", "completion": "Some response"},
+    {"prompt": "Another prompt", "completion": "Another response"}
 ]

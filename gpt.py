@@ -11,9 +11,12 @@ else:
 def completions_gpt(**kwargs):
     return openai.chat.completions.create(**kwargs)
 
-def get_output(prompt, model, temperature, max_tokens=1024) -> list:
+def get_output(prompt, model, temperature, max_tokens):
     messages = [{"role": "user", "content": prompt}]
     res = completions_gpt(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens, n=1)
     return res.choices[0].message.content
 
-#TODO: add llm_judge
+# requires the score to be within a box
+def get_score(text):
+    match = re.search(r'\\boxed\{(.+?)\}', text)
+    return float(match.group(1).strip())

@@ -11,4 +11,4 @@
 module purge
 module load anaconda3/2024.2
 conda activate LLMNegotiation
-sh bash_scripts/run.sh
+sh /home/zs7353/LLMNegotiation/scripts/run.sh
