@@ -22,6 +22,7 @@ def parse_args():
     parser.add_argument("--num_settings", type=int, default=3, help="Number of settings to generate.")
     parser.add_argument("--num_iterations", type=int, default=3, help="Number of iterations of rl.")
     parser.add_argument("--model", type=str, default='o3-mini', choices=['o3-mini', 'o1-mini', 'o1'], help="Which gpt model to use.")
+    parser.add_argument("--num_samples_for_each_setting_rl", type=int, default=10, help="Number of samples to generate for each setting for RL.")
     parser.add_argument("--max_new_tokens", type=int, default=1024, help="Maximum number of new tokens in data generation.")
     parser.add_argument('--do_sample', action='store_true', help="Enable sampling-based text generation (greedy decoding if omitted)")
     parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature (higher is more random).")
@@ -54,11 +55,11 @@ def main():
     print("[+] Generating data for RL...")
     generate_data_rl(rl_dataset_file=reward_train_config.train_file, 
                      settings_path=args.settings_path, 
-                     model=args.model
+                     model=args.model,
+                     num_samples=args.num_samples_for_each_setting_rl,
                      max_new_tokens=args.max_new_tokens, 
                      do_sample=args.do_sample, 
                      temperature=args.temperature, 
-                     span=args.span, 
                      depth=args.depth,
                      agents=agents)
 

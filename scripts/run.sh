@@ -3,6 +3,7 @@ python3.11 -B run.py \
     --grpo_train_config /home/zs7353/LLMNegotiation/config/grpo_train_config.yaml \
     --settings_path /home/zs7353/LLMNegotiation/negotiation_data/settings.jsonl \
     --num_settings 10 \
+    --num_samples_for_each_setting_rl 10 \
     --num_iterations 3 \
     --model o3-mini \
     --max_tokens 1024 \
