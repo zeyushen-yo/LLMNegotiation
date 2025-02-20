@@ -2,7 +2,7 @@ reward_judge_prompt = '''Given a negotiation setting:
 
 {negotiation_setting},
 
-and a conversation history between agents {agent1} and {agents2}:
+and a conversation history between agents {agent1} and {agent2}:
 
 {conversation_history},
 
@@ -14,33 +14,23 @@ negotiation_start_prompt = '''Given a negotiation setting:
 
 {negotiation_setting}
 
-between agents {agent1} and {agent2}. Imagine you are agent {current_agent}. How would you start the conversation? 
-Provide your answer in the following format:
+between agents {agent1} and {agent2}. Assume you are agent {current_agent}. Please provide **only one turn** of dialogue – just your opening proposal – and nothing more. Your response should be limited to a single, complete turn without any extra commentary or continuation. Format your answer as follows:
 
 Answer: [Your answer]
-
-without explanation.
 '''
 
 
 negotiation_respond_prompt = '''Given a negotiation setting:
 
-{negotiation_setting},
+{negotiation_setting}
 
 and a conversation history between agents {agent1} and {agent2}:
 
 {conversation_history}.
 
-Imagine you are agent {current_agent}. How would you continue the conversation? Provide your immediate response to this conversation.
-Provide your answer in the following format:
+Assume you are agent {current_agent}. Please provide **only one immediate turn** in response to the conversation history. Do not generate an extended conversation—just a single, complete turn. If this turn concludes the negotiation, append [NEGOTIATION END] (in all caps) at the end of your response. Format your answer as follows:
 
 Answer: [Your answer]
-
-without explanation. If the negotiation reaches an end, write:
-
-[NEGOTIATION END]
-
-by the end of your answer, in capitalization.
 '''
 
 

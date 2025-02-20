@@ -10,4 +10,4 @@ python3.11 -B run.py \
     --do_sample \
     --temperature 1 \
     --span 2 \
-    --depth 2 \
+    --max_depth 2 \

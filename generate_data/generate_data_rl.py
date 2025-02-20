@@ -6,7 +6,7 @@ from prompts import negotiation_start_prompt, negotiation_respond_prompt, reward
 from process_text import extract_from_text
 
 def generate_data_rl(rl_dataset_path, settings_path, model, num_samples, max_new_tokens, 
-                     do_sample, temperature, depth, agents):
+                     do_sample, temperature, max_depth, agents):
     """
     Generates linear (instead of tree-structured) negotiation conversation data using gpt for reinforcement learning.
     """
@@ -24,7 +24,7 @@ def generate_data_rl(rl_dataset_path, settings_path, model, num_samples, max_new
                 conversation = []
                 conversation.append("[Negotiation Starts]")
                 
-                for turn in range(depth):
+                for turn in range(max_depth):
                     if len(conversation) == 1:
                         prompt = negotiation_start_prompt.format(
                             negotiation_setting=setting,

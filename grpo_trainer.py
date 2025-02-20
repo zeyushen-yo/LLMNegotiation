@@ -8,6 +8,9 @@ from peft import LoraConfig, get_peft_model
 
 def build_reward_function(reward_model_path):
     rm_tokenizer = AutoTokenizer.from_pretrained(reward_model_path)
+    if rm_tokenizer.pad_token is None:
+        rm_tokenizer.pad_token = rm_tokenizer.eos_token
+    
     rm_model = AutoModelForSequenceClassification.from_pretrained(reward_model_path)
     rm_model.cuda()
     rm_model.eval()
@@ -57,7 +60,8 @@ def run_rl_finetuning(current_llm_path, reward_model_path, config):
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        reward_funcs=reward_func
+        reward_funcs=reward_func,
+        processing_class=tokenizer
     )
     
     trainer.train()

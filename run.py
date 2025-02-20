@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument('--do_sample', action='store_true', help="Enable sampling-based text generation (greedy decoding if omitted)")
     parser.add_argument("--temperature", type=float, default=1, help="Sampling temperature (higher is more random).")
     parser.add_argument("--span", type=int, default=3, help="Number of children of each non-leaf node in mcts.")
-    parser.add_argument("--depth", type=int, default=6, help="Maximum depth of the tree in mcts.")
+    parser.add_argument("--max_depth", type=int, default=6, help="Maximum depth of the tree in mcts.")
 
     return parser.parse_args()
 
@@ -63,7 +63,7 @@ def main():
                      max_new_tokens=args.max_new_tokens, 
                      do_sample=args.do_sample, 
                      temperature=args.temperature, 
-                     depth=args.depth,
+                     max_depth=args.max_depth,
                      agents=agents)
 
     for i in range(args.num_iterations):
@@ -85,7 +85,7 @@ def main():
                                     do_sample=args.do_sample, 
                                     temperature=args.temperature, 
                                     span=args.span, 
-                                    depth=args.depth,
+                                    max_depth=args.max_depth,
                                     agents=agents)
 
     print("\nDone! Final LLM is in:", current_llm_path)

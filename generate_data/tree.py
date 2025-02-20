@@ -15,7 +15,7 @@ class TreeNode:
         self.agent = agent
         self.parent = parent
         self.children = []
-        self.reward = None  # a dictionary, maps each agent to the reward of that agent
+        self.reward = {}  # a dictionary, maps each agent to the reward of that agent
 
 
 def generate_model_response(current_agent, setting, model, tokenizer, current_conversation, 
@@ -80,7 +80,7 @@ def expand_node(node, depth, max_depth, span, current_agent, setting, current_co
                     break
         return
 
-    if current_agent == agent[0]:
+    if current_agent == agents[0]:
         model, tokenizer = rl_model, rl_tokenizer
     else:
         model, tokenizer = ref_model, ref_tokenizer
@@ -103,10 +103,8 @@ def expand_node(node, depth, max_depth, span, current_agent, setting, current_co
         current_conversation.pop()
     
     # back-propagate the reward: average of the children’s rewards.
-    rewards = {}
     for ag in agents:
-        rewards[ag] = sum(child.reward[ag] for child in node.children) / len(node.children)
-    node.reward = rewards
+        node.reward[ag] = sum(child.reward[ag] for child in node.children) / len(node.children)
 
 def get_all_paths(node, current_path=None):
     """
