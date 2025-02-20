@@ -14,7 +14,7 @@ negotiation_start_prompt = '''Given a negotiation setting:
 
 {negotiation_setting}
 
-between agents {agent1} and {agent2}. Imagine you are agent {currenta_agent}. How would you start the conversation? 
+between agents {agent1} and {agent2}. Imagine you are agent {current_agent}. How would you start the conversation? 
 Provide your answer in the following format:
 
 Answer: [Your answer]

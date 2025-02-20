@@ -50,10 +50,13 @@ def main():
 
     current_rm_path = reward_train_config.get("other_args", {})["model_name_or_path"]
     current_llm_path = grpo_train_config.get("other_args", {})["model_name_or_path"]
+    rm_dataset_path = reward_train_config.get("other_args", {})["dataset_name_or_path"]
+    rl_dataset_path = grpo_train_config.get("other_args", {})["dataset_name_or_path"]
+
     start_llm_path = current_llm_path
 
     print("[+] Generating data for RL...")
-    generate_data_rl(rl_dataset_file=reward_train_config.train_file, 
+    generate_data_rl(rl_dataset_path=rl_dataset_path, 
                      settings_path=args.settings_path, 
                      model=args.model,
                      num_samples=args.num_samples_for_each_setting_rl,
@@ -75,14 +78,14 @@ def main():
         print("[+] Generating new data with the RL-finetuned LLM...")
         new_data = generate_data_rm(rl_llm_path=current_llm_path, 
                                     reference_llm_path=start_llm_path, 
-                                    rm_dataset_file=reward_train_config.train_file, 
+                                    rm_dataset_path=rm_dataset_path, 
                                     settings_path=args.settings_path, 
                                     model=args.model,
                                     max_new_tokens=args.max_new_tokens, 
                                     do_sample=args.do_sample, 
                                     temperature=args.temperature, 
                                     span=args.span, 
-                                    depth=args.depth
+                                    depth=args.depth,
                                     agents=agents)
 
     print("\nDone! Final LLM is in:", current_llm_path)

@@ -22,13 +22,13 @@ def generate_model_response(current_agent, setting, model, tokenizer, current_co
                             max_new_tokens, do_sample, temperature, agents):
     conversation = "\n".join(current_conversation)
     if len(current_conversation) == 1:
-        prompt = negotiation_start_prompt(negotiation_setting=setting,
+        prompt = negotiation_start_prompt.format(negotiation_setting=setting,
                                           agent1=agents[0],
                                           agent2=agents[1],
                                           current_agent=current_agent)
     else:
-        prompt = negotiation_respond_prompt(negotiation_setting=setting,
-                                            conversation_history=conversation
+        prompt = negotiation_respond_prompt.format(negotiation_setting=setting,
+                                            conversation_history=conversation,
                                             agent1=agents[0],
                                             agent2=agents[1],
                                             current_agent=current_agent)
@@ -36,21 +36,24 @@ def generate_model_response(current_agent, setting, model, tokenizer, current_co
     input_ids = tokenizer.encode(prompt, return_tensors="pt")
     if torch.cuda.is_available():
         input_ids = input_ids.to("cuda")
-    output_ids = model.generate(
-        input_ids=input_ids,
-        max_new_tokens=max_new_tokens,
-        do_sample=do_sample,
-        temperature=temperature
-    )
-    generated_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-    
-    # remove the prompt part (if present) so that we return only the new response.
-    if generated_text.startswith(prompt):
-        response = generated_text[len(prompt):].strip()
-    else:
-        response = generated_text.strip()
+
+    # sometimes models fail to follow the required format
+    while True:
+        output_ids = model.generate(
+            input_ids=input_ids,
+            max_new_tokens=max_new_tokens,
+            do_sample=do_sample,
+            temperature=temperature
+        )
+        generated_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
         
-    return extract_from_text(response)
+        # remove the prompt part (if present) so that we return only the new response.
+        if generated_text.startswith(prompt):
+            response = generated_text[len(prompt):].strip()
+        else:
+            response = generated_text.strip()
+        if "Answer:" in response:    
+            return extract_from_text(response, "Answer:")
 
 def expand_node(node, depth, max_depth, span, current_agent, setting, current_conversation,
                 judge_model, rl_model, rl_tokenizer, ref_model, ref_tokenizer, 
@@ -65,13 +68,16 @@ def expand_node(node, depth, max_depth, span, current_agent, setting, current_co
     if depth >= max_depth or "NEGOTIATION END" in current_conversation:
         full_conv = "\n".join(current_conversation)
         for ag in agents:
-            prompt = reward_judge_prompt(negotiation_setting=setting,
+            prompt = reward_judge_prompt.format(negotiation_setting=setting,
                                          conversation_history=full_conv,
                                          agent1=agents[0],
                                          agent2=agents[1],
                                          current_agent=current_agent)
-            output = get_output(prompt, judge_model, max_new_tokens)
-            node.reward[ag] = get_score(output)
+            while True:
+                output = get_output(prompt, judge_model, max_new_tokens)
+                if "\\boxed" in output:
+                    node.reward[ag] = get_score(output)
+                    break
         return
 
     if current_agent == agent[0]:

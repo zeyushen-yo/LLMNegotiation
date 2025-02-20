@@ -2,12 +2,12 @@ python3.11 -B run.py \
     --reward_train_config /home/zs7353/LLMNegotiation/config/reward_train_config.yaml \
     --grpo_train_config /home/zs7353/LLMNegotiation/config/grpo_train_config.yaml \
     --settings_path /home/zs7353/LLMNegotiation/negotiation_data/settings.jsonl \
-    --num_settings 10 \
-    --num_samples_for_each_setting_rl 10 \
-    --num_iterations 3 \
-    --model o3-mini \
-    --max_tokens 1024 \
+    --num_settings 1 \
+    --num_samples_for_each_setting_rl 1 \
+    --num_iterations 2 \
+    --model o1-mini \
+    --max_new_tokens 1024 \
     --do_sample \
     --temperature 1 \
-    --span 3 \
-    --depth 6 \
+    --span 2 \
+    --depth 2 \

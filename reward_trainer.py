@@ -34,7 +34,7 @@ def train_reward_model(current_rm_path, config):
         tokenizer.pad_token_id = tokenizer.eos_token_id or 0
     rm_model.config.pad_token_id = tokenizer.pad_token_id    
 
-    train_dataset = load_dataset("json", data_files=other_args["train_file"], split="train")
+    train_dataset = load_dataset("json", data_files=other_args["dataset_name_or_path"], split="train")
 
     def tokenize_fn(examples):
         texts = [q + "\n" + r for q, r in zip(examples["prompt"], examples["completion"])]

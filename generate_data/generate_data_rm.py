@@ -3,7 +3,7 @@ import json
 import random
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from tree import TreeNode, expand_node, get_all_paths
+from generate_data.tree import TreeNode, expand_node, get_all_paths
 from prompts import negotiation_start_prompt, negotiation_respond_prompt
 
 def load_llm(llm_path):
@@ -16,8 +16,8 @@ def load_llm(llm_path):
 
 # generate negotiation data with fine-tuned model and reference model for reward modeling
 # assume rl model is agent1 and reference model is agent2
-def generate_data_rm(rl_llm_path, reference_llm_path, rm_dataset_file, settings_path, 
-                     model, max_new_tokens, do_sample, temperature, span, depth, agents)
+def generate_data_rm(rl_llm_path, reference_llm_path, rm_dataset_path, settings_path, 
+                     model, max_new_tokens, do_sample, temperature, span, depth, agents):
     print("Loading RL model and tokenizer from:", rl_llm_path)
     rl_model, rl_tokenizer = load_llm(rl_llm_path)
     print("Loading reference model and tokenizer from:", reference_llm_path)

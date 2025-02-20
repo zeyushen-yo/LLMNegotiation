@@ -21,6 +21,6 @@ training_args:
   load_best_model_at_end: false
 
 other_args:
-  train_file: /home/zs7353/LLMNegotiation/negotiation_data/rm_dataset.jsonl
+  dataset_name_or_path: /home/zs7353/LLMNegotiation/negotiation_data/rm_dataset.jsonl
   model_name_or_path: /scratch/gpfs/zs7353/Qwen2.5-0.5B-Instruct
   num_labels: 1
