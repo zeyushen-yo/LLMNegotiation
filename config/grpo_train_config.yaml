@@ -1,6 +1,6 @@
 training_args:
   # training args
-  max_steps: 50
+  max_steps: 2
   per_device_train_batch_size: 1
   gradient_accumulation_steps: 8
   gradient_checkpointing: true
@@ -11,7 +11,7 @@ training_args:
   warmup_ratio: 0.03
   bf16: true
   tf32: true
-  output_dir: /scratch/gpfs/zs7353/LLMNegotiation/Llama-3.2-3B-Instruct_negotiation
+  output_dir: /scratch/gpfs/zs7353/LLMNegotiation/DeepSeek-R1-Distill-Llama-8B_negotiation
   save_strategy: "steps"
   save_steps: 25
 
@@ -23,7 +23,7 @@ training_args:
 
 other_args:
   # model arguments
-  model_name_or_path: /scratch/gpfs/zs7353/Llama-3.2-3B-Instruct
+  model_name_or_path: /scratch/gpfs/zs7353/DeepSeek-R1-Distill-Llama-8B
   model_revision: main
   torch_dtype: bfloat16
 

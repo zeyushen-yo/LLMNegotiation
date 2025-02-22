@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=negotiation_rl
 #SBATCH --nodes=1  
-#SBATCH --ntasks=1       
+#SBATCH --ntasks=1      
 #SBATCH --mem=32G  
 #SBATCH --gres=gpu:1   
 #SBATCH --time=24:00:00  

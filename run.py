@@ -5,10 +5,10 @@ from datasets import load_dataset
 
 from reward_trainer import train_reward_model
 from grpo_trainer import run_rl_finetuning
-# from generate_data_mcts import generate_data_mcts
 from generate_data.generate_data_rm import generate_data_rm
 from generate_data.generate_data_rl import generate_data_rl
 from generate_data.generate_settings import generate_settings
+from misc import load_llm
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Iterative Reward Model Training & RL Fine-Tuning")
@@ -37,11 +37,11 @@ def main():
     agents = ['A', 'B']
 
     print("[+] Generating negotiation settings...")
-    generate_settings(num_settings=args.num_settings, 
-                      settings_path=args.settings_path, 
-                      model=args.model,
-                      max_new_tokens=args.max_new_tokens,
-                      agents=agents)
+    # generate_settings(num_settings=args.num_settings, 
+    #                   settings_path=args.settings_path, 
+    #                   model=args.model,
+    #                   max_new_tokens=args.max_new_tokens,
+    #                   agents=agents)
 
     with open(args.reward_train_config, "r") as f:
         reward_train_config = yaml.safe_load(f)
@@ -54,9 +54,27 @@ def main():
     rl_dataset_path = grpo_train_config.get("other_args", {})["dataset_name_or_path"]
 
     start_llm_path = current_llm_path
+    print("Loading reference model and tokenizer from:", start_llm_path)
+    ref_model, ref_tokenizer = load_llm(start_llm_path)
+
+    new_data = generate_data_rm(rl_llm_path=current_llm_path, 
+                                ref_model=ref_model,
+                                ref_tokenizer=ref_tokenizer,
+                                rm_dataset_path=rm_dataset_path, 
+                                settings_path=args.settings_path, 
+                                model=args.model,
+                                max_new_tokens=args.max_new_tokens, 
+                                do_sample=args.do_sample, 
+                                temperature=args.temperature, 
+                                span=args.span, 
+                                max_depth=args.max_depth,
+                                agents=agents)
 
     print("[+] Generating data for RL...")
-    generate_data_rl(rl_dataset_path=rl_dataset_path, 
+    # I think we should use reference llm here? We first focus our goal on 'negotiating against' a particular llm
+    generate_data_rl(ref_model=ref_model,
+                     ref_tokenizer=ref_tokenizer,
+                     rl_dataset_path=rl_dataset_path, 
                      settings_path=args.settings_path, 
                      model=args.model,
                      num_samples=args.num_samples_for_each_setting_rl,
@@ -66,29 +84,30 @@ def main():
                      max_depth=args.max_depth,
                      agents=agents)
 
-    for i in range(args.num_iterations):
-        print(f"\n===== ITERATION {i+1}/{args.num_iterations} =====")
+    # for i in range(args.num_iterations):
+    #     print(f"\n===== ITERATION {i+1}/{args.num_iterations} =====")
 
-        print("[+] Training reward model...")
-        current_rm_path = train_reward_model(current_rm_path, reward_train_config)
+    #     print("[+] Training reward model...")
+    #     current_rm_path = train_reward_model(current_rm_path, reward_train_config)
 
-        print("[+] RL fine-tuning the LLM...")
-        current_llm_path = run_rl_finetuning(current_llm_path, current_rm_path, grpo_train_config)
+    #     print("[+] RL fine-tuning the LLM...")
+    #     current_llm_path = run_rl_finetuning(current_llm_path, current_rm_path, grpo_train_config)
 
-        print("[+] Generating new data with the RL-finetuned LLM...")
-        new_data = generate_data_rm(rl_llm_path=current_llm_path, 
-                                    reference_llm_path=start_llm_path, 
-                                    rm_dataset_path=rm_dataset_path, 
-                                    settings_path=args.settings_path, 
-                                    model=args.model,
-                                    max_new_tokens=args.max_new_tokens, 
-                                    do_sample=args.do_sample, 
-                                    temperature=args.temperature, 
-                                    span=args.span, 
-                                    max_depth=args.max_depth,
-                                    agents=agents)
+        # print("[+] Generating new data with the RL-finetuned LLM...")
+        # new_data = generate_data_rm(rl_llm_path=current_llm_path, 
+        #                             ref_model=ref_model,
+        #                             ref_tokenizer=ref_tokenizer,
+        #                             rm_dataset_path=rm_dataset_path, 
+        #                             settings_path=args.settings_path, 
+        #                             model=args.model,
+        #                             max_new_tokens=args.max_new_tokens, 
+        #                             do_sample=args.do_sample, 
+        #                             temperature=args.temperature, 
+        #                             span=args.span, 
+        #                             max_depth=args.max_depth,
+        #                             agents=agents)
 
-    print("\nDone! Final LLM is in:", current_llm_path)
+    # print("\nDone! Final LLM is in:", current_llm_path)
 
 
 if __name__ == "__main__":

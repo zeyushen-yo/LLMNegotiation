@@ -46,3 +46,20 @@ The setting should be well-defined and clear. Also, it can be any reasonable set
 
 Answer: [Your hypothetical negotiation setting].
 '''
+
+identify_strategy_prompt = '''Given a negotiation setting:
+
+{negotiation_setting}
+
+and a conversation history between agents {agent1} and {agent2}:
+
+{conversation_history}.
+
+The following is the response from {current_agent} to this conversation history:
+
+{response_text}.
+
+Please identify the strategy used in this response and summarize in a few words. Provide your answer in the following format:
+
+Answer: [Your identified strategy].
+'''
